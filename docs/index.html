@@ -581,10 +581,10 @@
     <h4>Base URL</h4>
     <div class="code">
       <div class="code-head"><span>plaintext</span><button class="copy-btn" data-copy>Copy</button></div>
-<pre>https://api.your-host.example.com/api/v1</pre>
+<pre>https://ghostair.onrender.com/api/v1</pre>
     </div>
 
-    <p>Ask the backend team for the environment URL that applies to your build (staging vs. production).</p>
+    <p>This is the hosted production URL. Ask the backend team if a separate staging environment applies to your build.</p>
 
     <h2 id="conventions">Response format <a class="anchor" href="#conventions">#</a></h2>
 
@@ -637,7 +637,7 @@
 
     <div class="code">
       <div class="code-head"><span>javascript — register &rarr; verify &rarr; login &rarr; me</span><button class="copy-btn" data-copy>Copy</button></div>
-<pre><span class="tok-k">const</span> API = <span class="tok-s">"https://api.your-host.example.com/api/v1"</span>;
+<pre><span class="tok-k">const</span> API = <span class="tok-s">"https://ghostair.onrender.com/api/v1"</span>;
 
 <span class="tok-k">const</span> api = (path, body) =&gt;
   fetch(`${API}${path}`, {
