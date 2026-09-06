@@ -373,7 +373,34 @@
     border: 1px solid var(--border);
     border-radius: 999px;
     background: #fff;
+    font-weight: 600;
   }
+  .endpoint-auth.public  { color: #15803d; border-color: #bbf7d0; background: #f0fdf4; }
+  .endpoint-auth.bearer  { color: var(--accent); border-color: var(--accent-line); background: var(--accent-soft); }
+  .endpoint-auth.refresh { color: #a16207; border-color: #fde68a; background: #fefce8; }
+
+  /* --- Callout: "you'll do" tip --- */
+  .tip {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 12px 14px;
+    margin: 16px 0 20px;
+    border: 1px solid var(--border);
+    border-left: 3px solid #0ea5e9;
+    background: #f0f9ff;
+    border-radius: var(--radius);
+    font-size: 14px;
+    color: #0c4a6e;
+  }
+  .tip::before {
+    content: "→";
+    font-weight: 700;
+    color: #0ea5e9;
+    line-height: 1.4;
+  }
+  .tip strong { color: #0c4a6e; }
+  .tip p, .tip :last-child { margin: 0; }
   .endpoint-body {
     padding: 16px 18px;
   }
@@ -565,17 +592,27 @@
 
     <h1>GhostAir Auth API</h1>
     <p class="lead">
-      Integration reference for the GhostAir authentication API. Everything you need to wire up
-      registration, email verification, login, session refresh, and password recovery from a web
-      or mobile client.
+      Hey — welcome. This is your integration reference for the GhostAir auth backend. By the time
+      you're done reading, you'll be able to wire up registration, email verification, login,
+      session refresh, and password recovery from any web or mobile client. Copy the snippets,
+      match the shapes, ship the flow.
     </p>
+
+    <div class="tip">
+      <div>
+        <strong>New here?</strong> Skim <a href="#overview">Overview</a>, then jump to
+        <a href="#quickstart">Quickstart</a> — it's a full end-to-end flow you can paste into a
+        browser and run in under a minute.
+      </div>
+    </div>
 
     <h2 id="overview">Overview <a class="anchor" href="#overview">#</a></h2>
     <p>
-      GhostAir is a JSON HTTP API served under <code>/api/v1</code>. Auth is bearer JWT, and for
-      browsers the same tokens are also set as <code>HttpOnly</code> cookies so you don't have to
-      touch them from JavaScript. Every response has a predictable shape; every error carries a
-      user-ready message you can render directly.
+      GhostAir is a JSON HTTP API served under <code>/api/v1</code>. You authenticate with a bearer
+      JWT, and if you're calling from a browser the same tokens are also set as <code>HttpOnly</code>
+      cookies — so you don't have to touch them from JavaScript at all. Every response has a
+      predictable shape, and every error you get back carries a user-ready <code>message</code> you
+      can render straight into your UI.
     </p>
 
     <h4>Base URL</h4>
@@ -584,12 +621,12 @@
 <pre>https://ghostair.onrender.com/api/v1</pre>
     </div>
 
-    <p>This is the hosted production URL. Ask the backend team if a separate staging environment applies to your build.</p>
+    <p>Point your client at this URL. It's the hosted production instance — check with the backend team if you need a separate staging environment for your build.</p>
 
     <h2 id="conventions">Response format <a class="anchor" href="#conventions">#</a></h2>
 
     <h3>Response envelope</h3>
-    <p>Every response — successful or not — has the same shape. Type it once and reuse it everywhere.</p>
+    <p>Every response you'll get back — success or failure — has the same shape. Type it once in your client and reuse it everywhere.</p>
 
     <h4>Success</h4>
     <div class="code">
@@ -614,25 +651,29 @@
     </div>
 
     <p>
-      <code>details</code> is either an array of <code>{ field, message }</code> objects
-      (for validation errors) or an object with endpoint-specific hints (for example
-      <code>{ verificationRequired: true, email }</code>). Never trust
-      <code>details</code> to be present — always check <code>success</code> first.
+      When <code>details</code> shows up, it's either an array of <code>{ field, message }</code>
+      objects (validation errors — highlight each field in your form) or an object with
+      endpoint-specific hints (for example <code>{ verificationRequired: true, email }</code> —
+      route the user to the verify screen). Don't assume <code>details</code> is present; always
+      check <code>success</code> first.
     </p>
 
     <h3>Sending requests</h3>
+    <p>Four rules to follow every time you call the API:</p>
     <ul>
-      <li>All request bodies must be JSON — set <code>Content-Type: application/json</code>.</li>
-      <li>On protected endpoints, send <code>Authorization: Bearer &lt;accessToken&gt;</code>.</li>
-      <li>In a browser, prefer <code>credentials: "include"</code> so the auth cookies ride along automatically. You can then skip the <code>Authorization</code> header entirely.</li>
-      <li>Request bodies are capped at 10 KB. Trim anything larger before sending.</li>
+      <li>Send every request body as JSON — set <code>Content-Type: application/json</code>.</li>
+      <li>On protected endpoints, attach <code>Authorization: Bearer &lt;accessToken&gt;</code>.</li>
+      <li>If you're in a browser, use <code>credentials: "include"</code> — the auth cookies will ride along automatically and you can skip the <code>Authorization</code> header entirely.</li>
+      <li>Keep your request body under 10 KB. Anything larger gets rejected — trim it first.</li>
     </ul>
 
     <h2 id="quickstart">Quickstart <a class="anchor" href="#quickstart">#</a></h2>
     <p>
-      A minimal end-to-end flow from a browser client. This assumes cookie-based auth; if you're
-      building for a native app, capture <code>data.tokens.accessToken</code> from the login
-      response and send it as a bearer header on subsequent calls.
+      Here's the shortest path from zero to a logged-in user. Paste this into your browser client
+      and you're done — it registers, verifies, logs in, and fetches the current user in one flow.
+      Cookie-based auth is assumed; if you're building for a native app, grab
+      <code>data.tokens.accessToken</code> from the login response and send it as a bearer header
+      on the calls that follow.
     </p>
 
     <div class="code">
@@ -677,9 +718,10 @@
     <h2 id="auth-model">Auth model <a class="anchor" href="#auth-model">#</a></h2>
 
     <p>
-      A user goes through three states: <strong>registered</strong> → <strong>verified</strong> →
-      <strong>authenticated</strong>. Only verified users can log in. Every state transition is
-      driven by an explicit endpoint; nothing happens implicitly on token refresh.
+      Every user you onboard walks through three states: <strong>registered</strong> →
+      <strong>verified</strong> → <strong>authenticated</strong>. Only verified users can log in.
+      You drive each transition with an explicit endpoint call — nothing happens implicitly, so
+      what you see in your code is exactly what the backend does.
     </p>
 
     <div class="code">
@@ -717,7 +759,7 @@
     </div>
 
     <h3 id="password-policy">Password policy</h3>
-    <p>Passwords are validated on registration, reset, and change. The rules are strict on purpose:</p>
+    <p>Every password your user submits — on registration, reset, or change — has to clear these rules. They're strict on purpose, so mirror them in your form to give instant feedback:</p>
     <ul>
       <li>8–128 characters</li>
       <li>At least one uppercase letter (<code>A–Z</code>)</li>
@@ -728,26 +770,27 @@
       <li>Not present in the built-in weak-password list</li>
     </ul>
     <p>
-      Errors call out the specific rules that failed, so the client can render actionable feedback
-      instead of a generic “weak password” toast. The <a href="#password-strength">password strength endpoint</a>
-      gives you the same evaluation without submitting the form.
+      When a password fails, you'll get back the exact rules that broke — render them inline
+      instead of a generic "weak password" toast. Want to score a password without submitting
+      the form? Hit the <a href="#password-strength">password strength endpoint</a> and you'll get
+      the same evaluation back, perfect for a live strength meter.
     </p>
 
     <h3 id="otp">OTP handling</h3>
-    <p>OTPs are 6-digit numeric codes sent by email. Build your OTP input around these rules:</p>
+    <p>OTPs are 6-digit numeric codes we send to your user by email. Build your OTP input with these rules in mind:</p>
     <ul>
-      <li>Each code is valid for <strong>10 minutes</strong>. Show the remaining time so users don't wonder.</li>
-      <li>The user gets <strong>5 attempts</strong> per code. The error message tells you how many are left — surface it in the UI.</li>
-      <li>After the 5th wrong attempt, the code is dead. Prompt the user to request a new one.</li>
-      <li>Requesting a new code invalidates the previous one and is throttled to <strong>once per 60 seconds</strong>. Disable the "Resend" button and count down.</li>
+      <li>Each code lives for <strong>10 minutes</strong>. Show your user a countdown so they don't wonder if it's still valid.</li>
+      <li>You get <strong>5 attempts</strong> per code. The error <code>message</code> tells you how many are left — surface it in the UI so your user knows the stakes.</li>
+      <li>After the 5th wrong attempt, the code is dead. Prompt your user to request a fresh one via <a href="#resend-verification"><code>/resend-verification</code></a>.</li>
+      <li>Requesting a new code kills the old one and is throttled to <strong>once every 60 seconds</strong>. Disable your "Resend" button and count down — don't make your user guess.</li>
     </ul>
 
     <h3 id="emails">Email previews</h3>
     <p>
-      What your users actually receive. Each preview below is the exact HTML the server sends,
-      rendered inside an isolated frame — pick a tab to switch templates. Use these as visual
-      reference when you design matching in-app screens (input for the OTP, "code sent" toasts,
-      etc.).
+      This is exactly what your user sees in their inbox. Each preview below is the real HTML the
+      server sends, rendered inside an isolated frame — click a tab to swap templates. Use these
+      as a visual reference when you design the matching in-app screens (OTP input, "code sent"
+      toast, etc.) so the whole flow feels like one product.
     </p>
 
     <div class="email-previews">
@@ -973,7 +1016,7 @@
 </html></script>
 
     <h3 id="errors">Error codes</h3>
-    <p>Every error carries a human-readable <code>message</code>. Display it verbatim — messages are already written for end users.</p>
+    <p>Every error you get back carries a human-readable <code>message</code>. Show it to your user verbatim — it's already written for end-user eyes, so you don't need to rewrite anything.</p>
     <table>
       <thead><tr><th>Status</th><th>What it means for your UI</th></tr></thead>
       <tbody>
@@ -994,9 +1037,10 @@
     </div>
 
     <h3 id="rate-limits">Rate limits</h3>
-    <p>Approximate ceilings you should design around. All responses include the standard
-    <code>RateLimit-Limit</code>, <code>RateLimit-Remaining</code>, and <code>RateLimit-Reset</code>
-    headers — read them if you want to render a friendly countdown.</p>
+    <p>These are the ceilings you'll want to design your client around. Every response you get
+    back includes the standard <code>RateLimit-Limit</code>, <code>RateLimit-Remaining</code>, and
+    <code>RateLimit-Reset</code> headers — read them from your fetch response and render a friendly
+    countdown for your user instead of a hard error.</p>
     <table>
       <thead><tr><th>Where</th><th>Window</th><th>Max requests</th></tr></thead>
       <tbody>
@@ -1007,24 +1051,30 @@
       </tbody>
     </table>
     <p>
-      Login has an additional safety net: five wrong passwords in a row locks the account for
-      15 minutes, no matter where the requests came from. The <code>423</code> response tells the
-      user exactly how long to wait.
+      Login has one extra safety net you should know about: if your user gets their password
+      wrong five times in a row, we lock the account for 15 minutes — no matter which client or
+      IP the requests came from. When that happens, you'll get a <code>423</code> back with the
+      exact wait time in the message. Surface that to your user instead of a generic "try again".
     </p>
 
     <h2 id="endpoints">Endpoints <a class="anchor" href="#endpoints">#</a></h2>
+    <p>
+      Every endpoint you'll need, grouped so you can scan the reference and copy the shape into
+      your client. The colored pill on each card tells you what auth you need: <span class="endpoint-auth public" style="display:inline-block;position:static;margin:0;font-size:10px;">Public</span> means no token, <span class="endpoint-auth bearer" style="display:inline-block;position:static;margin:0;font-size:10px;">Bearer</span> means an access token, and <span class="endpoint-auth refresh" style="display:inline-block;position:static;margin:0;font-size:10px;">Refresh token</span> means the refresh cookie (or body field).
+    </p>
 
     <!-- Register -->
     <div class="endpoint" id="register">
       <div class="endpoint-head">
         <span class="method post">POST</span>
         <span class="endpoint-path">/api/v1/auth/register</span>
-        <span class="endpoint-auth">Public</span>
+        <span class="endpoint-auth public">Public</span>
       </div>
       <div class="endpoint-body">
-        <p>Create an account and dispatch an email verification OTP. The user is created in an
-        <em>unverified</em> state and cannot log in until <a href="#verify-email"><code>/verify-email</code></a>
-        succeeds.</p>
+        <p>Call this when your user hits "Sign up". You create the account, we send them a
+        6-digit OTP by email. Heads up — the account starts in an <em>unverified</em> state, so
+        your user can't log in yet. You'll want to route them straight to your OTP-entry screen
+        and finish the flow with <a href="#verify-email"><code>/verify-email</code></a>.</p>
 
         <h4>Request body</h4>
         <table>
@@ -1082,11 +1132,12 @@ Content-Type: application/json
       <div class="endpoint-head">
         <span class="method post">POST</span>
         <span class="endpoint-path">/api/v1/auth/verify-email</span>
-        <span class="endpoint-auth">Public</span>
+        <span class="endpoint-auth public">Public</span>
       </div>
       <div class="endpoint-body">
-        <p>Consume the OTP sent during registration. On success the account is marked verified
-        and can log in.</p>
+        <p>Take the OTP your user typed into your form and POST it here. On success we flip the
+        account to verified — from that moment on, your user can log in. Send them straight to
+        the login screen (or auto-log them in if you want a smoother onboarding).</p>
 
         <h4>Request body</h4>
         <table>
@@ -1119,11 +1170,12 @@ Content-Type: application/json
       <div class="endpoint-head">
         <span class="method post">POST</span>
         <span class="endpoint-path">/api/v1/auth/resend-verification</span>
-        <span class="endpoint-auth">Public</span>
+        <span class="endpoint-auth public">Public</span>
       </div>
       <div class="endpoint-body">
-        <p>Issue a new verification OTP. Subject to a 60-second cooldown per user and the
-        OTP-resend rate limit.</p>
+        <p>Your user lost the code or it expired? Hit this endpoint to fire off a fresh OTP.
+        Keep in mind: you get one resend per user every 60 seconds, so disable your "Resend"
+        button and show a countdown until it's ready again.</p>
 
         <h4>Request body</h4>
         <table><tbody><tr><td><code>email</code></td><td>the account to notify.</td></tr></tbody></table>
@@ -1144,12 +1196,14 @@ Content-Type: application/json
       <div class="endpoint-head">
         <span class="method post">POST</span>
         <span class="endpoint-path">/api/v1/auth/login</span>
-        <span class="endpoint-auth">Public</span>
+        <span class="endpoint-auth public">Public</span>
       </div>
       <div class="endpoint-body">
         <p>
-          Exchange credentials for a token pair. Bad passwords increment a per-account counter
-          and, after five failures, lock the account for 15 minutes.
+          Hand off your user's email and password, get back a token pair (and the same tokens
+          as cookies, if you're in a browser). A quick warning: five wrong passwords in a row
+          and we lock the account for 15 minutes — so be gentle with the "Try again" copy in
+          your UI and lean on the <code>message</code> the API returns.
         </p>
 
         <h4>Request body</h4>
@@ -1176,9 +1230,9 @@ Content-Type: application/json
         </div>
 
         <p>
-          The same tokens are also written to <code>accessToken</code> and <code>refreshToken</code>
-          cookies. Browser clients should use <code>credentials: "include"</code> and can ignore the
-          body tokens entirely.
+          Those same tokens are also written to <code>accessToken</code> and <code>refreshToken</code>
+          cookies for you. If you're a browser client, just send <code>credentials: "include"</code>
+          on every request and forget the body tokens exist — the cookies do all the work.
         </p>
 
         <h4>Errors</h4>
@@ -1195,11 +1249,12 @@ Content-Type: application/json
       <div class="endpoint-head">
         <span class="method post">POST</span>
         <span class="endpoint-path">/api/v1/auth/refresh</span>
-        <span class="endpoint-auth">Refresh token</span>
+        <span class="endpoint-auth refresh">Refresh token</span>
       </div>
       <div class="endpoint-body">
-        <p>Rotate the token pair. Reads the refresh token from the <code>refreshToken</code>
-        cookie, or from a <code>refreshToken</code> field in the body for non-browser clients.</p>
+        <p>Your access token expired? Call this to swap your refresh token for a fresh pair.
+        In a browser we read the token from the <code>refreshToken</code> cookie automatically;
+        on native, put it in the request body as a <code>refreshToken</code> field.</p>
 
         <div class="note">
           Successful refresh <em>invalidates</em> the presented refresh token. Store the new one
@@ -1230,13 +1285,13 @@ Content-Type: application/json
       <div class="endpoint-head">
         <span class="method post">POST</span>
         <span class="endpoint-path">/api/v1/auth/logout</span>
-        <span class="endpoint-auth">Bearer</span>
+        <span class="endpoint-auth bearer">Bearer</span>
       </div>
       <div class="endpoint-body">
-        <p>End the current session: the refresh token is revoked and auth cookies are cleared.
-        The access token itself keeps working until it expires naturally (at most 15 minutes),
-        so drop any cached user state on the client immediately after this call — don't wait for
-        the next 401.</p>
+        <p>End your user's session — we revoke the refresh token and clear the auth cookies for
+        you. One gotcha: the access token itself keeps working until it naturally expires (up to
+        15 minutes). So the moment you get a <code>200</code> back, drop any cached user state on
+        your client. Don't wait for a <code>401</code> to figure it out.</p>
 
         <div class="code">
           <div class="code-head"><span>200 OK</span></div>
@@ -1250,11 +1305,13 @@ Content-Type: application/json
       <div class="endpoint-head">
         <span class="method post">POST</span>
         <span class="endpoint-path">/api/v1/auth/forgot-password</span>
-        <span class="endpoint-auth">Public</span>
+        <span class="endpoint-auth public">Public</span>
       </div>
       <div class="endpoint-body">
-        <p>Request a password reset OTP. To prevent user enumeration, this endpoint returns the
-        same <code>200</code> response regardless of whether the email exists.</p>
+        <p>Kick off password recovery for your user. To keep attackers from probing your user
+        list, we return the exact same <code>200</code> response whether or not the email is
+        actually registered — so mirror that in your UI: always show a neutral "if it exists,
+        we sent it" screen, never a "no such user" error.</p>
 
         <h4>Request body</h4>
         <table><tbody><tr><td><code>email</code></td><td>the account email.</td></tr></tbody></table>
@@ -1275,12 +1332,14 @@ Content-Type: application/json
       <div class="endpoint-head">
         <span class="method post">POST</span>
         <span class="endpoint-path">/api/v1/auth/reset-password</span>
-        <span class="endpoint-auth">Public</span>
+        <span class="endpoint-auth public">Public</span>
       </div>
       <div class="endpoint-body">
-        <p>Set a new password using the OTP from <a href="#forgot-password"><code>/forgot-password</code></a>.
-        On success every outstanding session is revoked and a "password changed" alert is emailed
-        to the user.</p>
+        <p>Finish the recovery flow. Take the OTP your user got from
+        <a href="#forgot-password"><code>/forgot-password</code></a> and the new password they
+        just typed, and POST them together here. On success, we kill every one of their active
+        sessions and fire off a "password changed" alert email — so route them back to the login
+        screen after you get the <code>200</code>.</p>
 
         <h4>Request body</h4>
         <table>
@@ -1314,12 +1373,13 @@ Content-Type: application/json
       <div class="endpoint-head">
         <span class="method post">POST</span>
         <span class="endpoint-path">/api/v1/auth/change-password</span>
-        <span class="endpoint-auth">Bearer</span>
+        <span class="endpoint-auth bearer">Bearer</span>
       </div>
       <div class="endpoint-body">
-        <p>Change the authenticated user's password. Requires the current password as proof of
-        possession. Revokes all sessions, including the one making this call — the client must
-        log in again.</p>
+        <p>Let your user rotate their password from inside the app. You'll need the current
+        password too — that's proof of possession, not busywork. When it succeeds, we revoke
+        <em>every</em> session your user has open (including this one), so plan to route them
+        back to the login screen right after.</p>
 
         <h4>Request body</h4>
         <table>
@@ -1346,11 +1406,12 @@ Content-Type: application/json
       <div class="endpoint-head">
         <span class="method get">GET</span>
         <span class="endpoint-path">/api/v1/auth/me</span>
-        <span class="endpoint-auth">Bearer</span>
+        <span class="endpoint-auth bearer">Bearer</span>
       </div>
       <div class="endpoint-body">
-        <p>Return the authenticated user's profile. Useful as a lightweight "am I still logged in?"
-        probe on app load.</p>
+        <p>Fetch your currently-signed-in user. This is your go-to for the "am I still logged in?"
+        check when your app boots — hit it on mount, if you get a <code>200</code> you know your
+        user's session is alive and you have their profile ready to hydrate the UI.</p>
 
         <div class="code">
           <div class="code-head"><span>200 OK</span></div>
@@ -1379,11 +1440,12 @@ Content-Type: application/json
       <div class="endpoint-head">
         <span class="method post">POST</span>
         <span class="endpoint-path">/api/v1/auth/password-strength</span>
-        <span class="endpoint-auth">Public</span>
+        <span class="endpoint-auth public">Public</span>
       </div>
       <div class="endpoint-body">
-        <p>Live evaluation of a candidate password. Ideal for rendering a strength meter and
-        inline hints on your sign-up form. Nothing is stored server-side.</p>
+        <p>Score a password on the fly. Wire this behind your sign-up form (throttled — don't
+        fire it on every keystroke) to power a live strength meter and inline hints. Nothing you
+        send here gets stored, so it's safe to call while your user is still typing.</p>
 
         <div class="code">
           <div class="code-head"><span>200 OK</span></div>
@@ -1415,14 +1477,14 @@ Content-Type: application/json
     </div>
 
     <h2 id="client-security">Client-side security <a class="anchor" href="#client-security">#</a></h2>
-    <p>A short list of things the frontend needs to get right for this API to stay secure:</p>
+    <p>A few things you'll want to lock down on the frontend so this API stays secure end-to-end. Treat this list as a checklist before you ship:</p>
     <ul>
-      <li><strong>Prefer cookies to bearer tokens in browsers.</strong> Send <code>credentials: "include"</code> and let the <code>HttpOnly</code> cookies do their job. You can't read them from JavaScript, which means XSS can't steal them.</li>
-      <li><strong>Never put the access or refresh token in <code>localStorage</code> or <code>sessionStorage</code>.</strong> If you must store them (mobile, non-browser client), use the platform's secure storage.</li>
-      <li><strong>Always call this API over HTTPS in production.</strong> Cookies are marked <code>Secure</code>, so a plain-HTTP request will silently arrive with no session.</li>
-      <li><strong>Handle <code>401</code> deliberately.</strong> Try <code>/refresh</code> once; if it also fails, clear local user state and route to login.</li>
-      <li><strong>Rate limits are real.</strong> Debounce login and OTP-resend buttons, and honour <code>RateLimit-Reset</code> before retrying.</li>
-      <li><strong>Validate on the client, trust the server.</strong> Mirror the <a href="#password-policy">password policy</a> in the sign-up form for fast feedback, but never assume your check is sufficient — the server rechecks everything.</li>
+      <li><strong>Reach for cookies, not bearer tokens, in browsers.</strong> Send <code>credentials: "include"</code> and let the <code>HttpOnly</code> cookies do the work — your JavaScript can't read them, which means XSS can't steal them either.</li>
+      <li><strong>Never park tokens in <code>localStorage</code> or <code>sessionStorage</code>.</strong> If you absolutely have to hold them yourself (mobile, non-browser client), put them in the platform's secure storage — Keychain, Keystore, or equivalent.</li>
+      <li><strong>Always talk to this API over HTTPS in production.</strong> Cookies are marked <code>Secure</code>, so a plain-HTTP call will silently arrive with no session — and you'll spend the next hour wondering why nothing works.</li>
+      <li><strong>Handle a <code>401</code> deliberately.</strong> Try <code>/refresh</code> exactly once; if it also fails, wipe your local user state and send your user to the login screen. Don't loop.</li>
+      <li><strong>Respect the rate limits.</strong> Debounce your login and "Resend OTP" buttons, and honour <code>RateLimit-Reset</code> before you retry — otherwise you'll trip a 429 and frustrate your user.</li>
+      <li><strong>Validate on the client, trust the server.</strong> Mirror the <a href="#password-policy">password policy</a> in your sign-up form so your user gets instant feedback, but never assume your check is enough — we recheck everything on the backend.</li>
     </ul>
 
     <h2 id="changelog">Changelog <a class="anchor" href="#changelog">#</a></h2>
@@ -1441,7 +1503,7 @@ Content-Type: application/json
 </div>
 
 <footer>
-  GhostAir Auth API · Documentation last updated 2026-09-06
+  GhostAir Auth API · Documentation last updated 2026-09-06 · Built for the developers wiring us in — thanks for reading this far.
 </footer>
 
 <script>
